@@ -145,6 +145,24 @@ public func differentiableFunction<T, U, R>(
   return original
 }
 
+/// Make a function be recomputed in its pullback, known as "checkpointing" in
+/// traditional automatic differentiation.
+@inlinable
+public func withRecomputationInDerivatives<T, U>(
+  _ f: @escaping @autodiff (T) -> U
+) -> @autodiff (T) -> U where T : Differentiable, U : Differentiable {
+  return differentiableFunction { x in
+    (value: f(x), pullback: { v in pullback(at: x, in: f)(v) })
+  }
+}
+
+@inlinable
+public func withRecomputationInDerivatives<T, U>(
+  _ x: T, _ f: @escaping @autodiff (T) -> U
+) -> U where T : Differentiable, U : Differentiable {
+  return withRecomputationInDerivatives(f)(x)
+}
+
 //===----------------------------------------------------------------------===//
 // Method-style differential operators
 //===----------------------------------------------------------------------===//
